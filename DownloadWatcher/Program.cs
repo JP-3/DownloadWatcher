@@ -42,53 +42,61 @@ static void OnChanged(object source, FileSystemEventArgs e)
     if (e.Name == "RestartTV.jpg")
     {
         email.SendEmail($"Starting {e.Name}");
-        var processStartInfo = new ProcessStartInfo(data[PropertiesEnum.RestartTV.ToString()]);
-        processStartInfo.CreateNoWindow = true;
-        processStartInfo.UseShellExecute = false;
-        using var process = new Process();
-        process.StartInfo = processStartInfo;
-        process.Start();
-        process.WaitForExit();
+        StartProcess(data[PropertiesEnum.RestartTV.ToString()]);
         email.SendEmail($"Finished {e.Name}");
     }
     else if (e.Name == "ScanFiles.jpg")
     {
         email.SendEmail($"Starting {e.Name}");
-        var processStartInfo = new ProcessStartInfo(data[PropertiesEnum.TVEpisodeChecker.ToString()]);
-        processStartInfo.CreateNoWindow = true;
-        processStartInfo.UseShellExecute = false;
-        using var process = new Process();
-        process.StartInfo = processStartInfo;
-        process.Start();
-        process.WaitForExit();
+        StartProcess(data[PropertiesEnum.TVEpisodeChecker.ToString()]);
         File.Delete(@$"{data[PropertiesEnum.DownloadsPath.ToString()]}\ScanFiles.jpg");
         email.SendEmail($"Finished {e.Name}");
     }
     else if (e.Name == "CheckProcess.jpg")
     {
-        Process[] processlist = Process.GetProcesses();
-        foreach (Process theprocess in processlist)
+
+        if (ProcessRunning("FileMover"))
         {
-            if (theprocess.ProcessName == "FileMover")
+            email.SendEmail($"FileMover UP");
+        }
+        else
+        {
+            email.SendEmail($"FileMover Down Restarting");
+            StartProcess(data[PropertiesEnum.FileMover.ToString()]);
+            Thread.Sleep(1000);
+            if (ProcessRunning("FileMover"))
             {
                 email.SendEmail($"FileMover UP");
             }
             else
             {
-                email.SendEmail($"FileMover Down Restarting");
-                var processStartInfo = new ProcessStartInfo(data[PropertiesEnum.FileMover.ToString()]);
-                processStartInfo.CreateNoWindow = true;
-                processStartInfo.UseShellExecute = false;
-                using var process = new Process();
-                process.StartInfo = processStartInfo;
-                process.Start();
-                process.WaitForExit();
+                email.SendEmail($"FileMover Still Down Check on it");
             }
-            File.Delete(@$"{data[PropertiesEnum.DownloadsPath.ToString()]}\CheckProcess.jpg");
         }
+        File.Delete(@$"{data[PropertiesEnum.DownloadsPath.ToString()]}\CheckProcess.jpg");
+
     }
 }
- static void GetProcess()
+static bool ProcessRunning(string process)
 {
+    Process[] processlist = Process.GetProcesses();
+    foreach (Process theprocess in processlist)
+    {
+        if (theprocess.ProcessName == process)
+        {
+            return true;
+        }
+    }
+    return false;
+}
 
+static void StartProcess(string processPath)
+{
+    var processStartInfo = new ProcessStartInfo(processPath);
+    processStartInfo.CreateNoWindow = true;
+    processStartInfo.UseShellExecute = false;
+    using var process = new Process();
+    process.StartInfo = processStartInfo;
+    process.Start();
+    process.WaitForExit();
 }
