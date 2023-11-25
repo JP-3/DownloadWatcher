@@ -4,6 +4,7 @@
     {
         DownloadsPath,
         RestartTV,
-        TVEpisodeChecker
+        TVEpisodeChecker,
+        FileMover
     }
 }

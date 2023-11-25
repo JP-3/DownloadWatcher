@@ -73,7 +73,22 @@ static void OnChanged(object source, FileSystemEventArgs e)
             {
                 email.SendEmail($"FileMover UP");
             }
+            else
+            {
+                email.SendEmail($"FileMover Down Restarting");
+                var processStartInfo = new ProcessStartInfo(data[PropertiesEnum.FileMover.ToString()]);
+                processStartInfo.CreateNoWindow = true;
+                processStartInfo.UseShellExecute = false;
+                using var process = new Process();
+                process.StartInfo = processStartInfo;
+                process.Start();
+                process.WaitForExit();
+            }
             File.Delete(@$"{data[PropertiesEnum.DownloadsPath.ToString()]}\CheckProcess.jpg");
         }
     }
+}
+ static void GetProcess()
+{
+
 }

@@ -8,7 +8,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="MyEmail" Version="1.0.1" />
+    <PackageReference Include="MyEmail" Version="1.0.2" />
   </ItemGroup>
 
 </Project>
