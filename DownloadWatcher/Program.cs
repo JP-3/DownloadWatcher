@@ -39,22 +39,21 @@ static void OnChanged(object source, FileSystemEventArgs e)
         data.Add(row.Split('=')[0], string.Join("=", row.Split('=').Skip(1).ToArray()));
     }
 
-    if (e.Name == "RestartTV.jpg")
+    if (e.Name.ToLower() == "restarttv.jpg")
     {
         email.SendEmail($"Starting {e.Name}");
-        StartProcess(data[PropertiesEnum.RestartTV.ToString()]);
+        StartProcess(data[PropertiesEnum.RestartTV.ToString()]).WaitForExit();
         email.SendEmail($"Finished {e.Name}");
     }
-    else if (e.Name == "ScanFiles.jpg")
+    else if (e.Name.ToLower() == "scanfiles.jpg")
     {
         email.SendEmail($"Starting {e.Name}");
-        StartProcess(data[PropertiesEnum.TVEpisodeChecker.ToString()]);
+        StartProcess(data[PropertiesEnum.TVEpisodeChecker.ToString()]).WaitForExit();
         File.Delete(@$"{data[PropertiesEnum.DownloadsPath.ToString()]}\ScanFiles.jpg");
         email.SendEmail($"Finished {e.Name}");
     }
-    else if (e.Name == "CheckProcess.jpg")
+    else if (e.Name.ToLower() == "checkprocess.jpg")
     {
-
         if (ProcessRunning("FileMover"))
         {
             email.SendEmail($"FileMover UP");
@@ -90,7 +89,7 @@ static bool ProcessRunning(string process)
     return false;
 }
 
-static void StartProcess(string processPath)
+static Process StartProcess(string processPath)
 {
     var processStartInfo = new ProcessStartInfo(processPath);
     processStartInfo.CreateNoWindow = true;
@@ -98,5 +97,5 @@ static void StartProcess(string processPath)
     using var process = new Process();
     process.StartInfo = processStartInfo;
     process.Start();
-    process.WaitForExit();
+    return process;
 }
