@@ -7,6 +7,7 @@ foreach (var row in File.ReadAllLines(@"C:\\git\key.txt"))
 {
     data.Add(row.Split('=')[0], string.Join("=", row.Split('=').Skip(1).ToArray()));
 }
+CheckFileMover("FileMover", data[PropertiesEnum.FileMover.ToString()]);
 
 FileSystemWatcher watcher = new FileSystemWatcher();
 watcher.Path = data[PropertiesEnum.DownloadsPath.ToString()];
@@ -27,7 +28,7 @@ watcher.Filter = "*.jpg";
 watcher.Created += new FileSystemEventHandler(OnChanged);
 watcher.IncludeSubdirectories = false;
 watcher.EnableRaisingEvents = true;
-while (true) { Thread.Sleep(60000); } //infinite loop
+while (true) { Thread.Sleep(2000); } //infinite loop
 
 static void OnChanged(object source, FileSystemEventArgs e)
 {
@@ -48,32 +49,15 @@ static void OnChanged(object source, FileSystemEventArgs e)
         }
         else if (e.Name.ToLower() == "scanfiles.jpg")
         {
+            File.Delete(@$"{data[PropertiesEnum.DownloadsPath.ToString()]}\ScanFiles.jpg");
             email.SendEmail($"Starting {e.Name}");
             StartProcess(data[PropertiesEnum.TVEpisodeChecker.ToString()], true);
-            File.Delete(@$"{data[PropertiesEnum.DownloadsPath.ToString()]}\ScanFiles.jpg");
             email.SendEmail($"Finished {e.Name}");
         }
         else if (e.Name.ToLower() == "checkprocess.jpg")
         {
-            if (ProcessRunning("FileMover"))
-            {
-                email.SendEmail($"FileMover UP");
-            }
-            else
-            {
-                email.SendEmail($"FileMover Down Restarting");
-                StartProcess(data[PropertiesEnum.FileMover.ToString()], false);
-                Thread.Sleep(1000);
-                if (ProcessRunning("FileMover"))
-                {
-                    email.SendEmail($"FileMover UP");
-                }
-                else
-                {
-                    email.SendEmail($"FileMover Still Down Check on it");
-                }
-            }
             File.Delete(@$"{data[PropertiesEnum.DownloadsPath.ToString()]}\CheckProcess.jpg");
+            CheckFileMover("FileMover", data[PropertiesEnum.FileMover.ToString()]);
         }
     }
     catch (Exception ex)
@@ -81,6 +65,30 @@ static void OnChanged(object source, FileSystemEventArgs e)
         email.SendEmail($"DownloadWatcher Failed", ex.ToString());
     }
 }
+
+static void CheckFileMover(string process, string location)
+{
+    Email email = new Email();
+    if (ProcessRunning(process))
+    {
+        email.SendEmail($"{process} UP");
+    }
+    else
+    {
+        email.SendEmail($"{process} Down Restarting");
+        StartProcess(location, false);
+        Thread.Sleep(1000);
+        if (ProcessRunning(process))
+        {
+            email.SendEmail($"{process} UP");
+        }
+        else
+        {
+            email.SendEmail($"{process} Still Down Check on it");
+        }
+    }
+}
+
 static bool ProcessRunning(string process)
 {
     Process[] processlist = Process.GetProcesses();
