@@ -32,48 +32,53 @@ while (true) { Thread.Sleep(60000); } //infinite loop
 static void OnChanged(object source, FileSystemEventArgs e)
 {
     Email email = new Email();
-
-    Dictionary<string, string> data = new Dictionary<string, string>();
-    foreach (var row in File.ReadAllLines(@"C:\\git\key.txt"))
+    try
     {
-        data.Add(row.Split('=')[0], string.Join("=", row.Split('=').Skip(1).ToArray()));
-    }
-
-    if (e.Name.ToLower() == "restarttv.jpg")
-    {
-        email.SendEmail($"Starting {e.Name}");
-        StartProcess(data[PropertiesEnum.RestartTV.ToString()]).WaitForExit();
-        email.SendEmail($"Finished {e.Name}");
-    }
-    else if (e.Name.ToLower() == "scanfiles.jpg")
-    {
-        email.SendEmail($"Starting {e.Name}");
-        StartProcess(data[PropertiesEnum.TVEpisodeChecker.ToString()]).WaitForExit();
-        File.Delete(@$"{data[PropertiesEnum.DownloadsPath.ToString()]}\ScanFiles.jpg");
-        email.SendEmail($"Finished {e.Name}");
-    }
-    else if (e.Name.ToLower() == "checkprocess.jpg")
-    {
-        if (ProcessRunning("FileMover"))
+        Dictionary<string, string> data = new Dictionary<string, string>();
+        foreach (var row in File.ReadAllLines(@"C:\\git\key.txt"))
         {
-            email.SendEmail($"FileMover UP");
+            data.Add(row.Split('=')[0], string.Join("=", row.Split('=').Skip(1).ToArray()));
         }
-        else
+
+        if (e.Name.ToLower() == "restarttv.jpg")
         {
-            email.SendEmail($"FileMover Down Restarting");
-            StartProcess(data[PropertiesEnum.FileMover.ToString()]);
-            Thread.Sleep(1000);
+            email.SendEmail($"Starting {e.Name}");
+            StartProcess(data[PropertiesEnum.RestartTV.ToString()], true);
+            email.SendEmail($"Finished {e.Name}");
+        }
+        else if (e.Name.ToLower() == "scanfiles.jpg")
+        {
+            email.SendEmail($"Starting {e.Name}");
+            StartProcess(data[PropertiesEnum.TVEpisodeChecker.ToString()], true);
+            File.Delete(@$"{data[PropertiesEnum.DownloadsPath.ToString()]}\ScanFiles.jpg");
+            email.SendEmail($"Finished {e.Name}");
+        }
+        else if (e.Name.ToLower() == "checkprocess.jpg")
+        {
             if (ProcessRunning("FileMover"))
             {
                 email.SendEmail($"FileMover UP");
             }
             else
             {
-                email.SendEmail($"FileMover Still Down Check on it");
+                email.SendEmail($"FileMover Down Restarting");
+                StartProcess(data[PropertiesEnum.FileMover.ToString()], false);
+                Thread.Sleep(1000);
+                if (ProcessRunning("FileMover"))
+                {
+                    email.SendEmail($"FileMover UP");
+                }
+                else
+                {
+                    email.SendEmail($"FileMover Still Down Check on it");
+                }
             }
+            File.Delete(@$"{data[PropertiesEnum.DownloadsPath.ToString()]}\CheckProcess.jpg");
         }
-        File.Delete(@$"{data[PropertiesEnum.DownloadsPath.ToString()]}\CheckProcess.jpg");
-
+    }
+    catch (Exception ex)
+    {
+        email.SendEmail($"DownloadWatcher Failed", ex.ToString());
     }
 }
 static bool ProcessRunning(string process)
@@ -89,7 +94,7 @@ static bool ProcessRunning(string process)
     return false;
 }
 
-static Process StartProcess(string processPath)
+static void StartProcess(string processPath, bool wait)
 {
     var processStartInfo = new ProcessStartInfo(processPath);
     processStartInfo.CreateNoWindow = true;
@@ -97,5 +102,9 @@ static Process StartProcess(string processPath)
     using var process = new Process();
     process.StartInfo = processStartInfo;
     process.Start();
-    return process;
+
+    if (wait)
+    {
+        process.WaitForExit();
+    }
 }
