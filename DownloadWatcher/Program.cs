@@ -70,11 +70,7 @@ static void OnChanged(object source, FileSystemEventArgs e)
 static void CheckProcessIsRunning(string process, string location)
 {
     Email email = new Email();
-    if (ProcessRunning(process))
-    {
-        email.SendEmail($"{process} UP");
-    }
-    else
+    if (!ProcessRunning(process))
     {
         email.SendEmail($"{process} Down Restarting");
         StartProcess(location, false);
