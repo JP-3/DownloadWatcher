@@ -5,6 +5,7 @@
         DownloadsPath,
         RestartTV,
         TVEpisodeChecker,
-        FileMover
+        FileMover,
+        QBit
     }
 }

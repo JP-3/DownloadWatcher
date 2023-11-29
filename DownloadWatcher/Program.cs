@@ -7,8 +7,8 @@ foreach (var row in File.ReadAllLines(@"C:\\git\key.txt"))
 {
     data.Add(row.Split('=')[0], string.Join("=", row.Split('=').Skip(1).ToArray()));
 }
-CheckFileMover("FileMover", data[PropertiesEnum.FileMover.ToString()]);
-
+CheckProcessIsRunning("FileMover", data[PropertiesEnum.FileMover.ToString()]);
+CheckProcessIsRunning("qbittorrent", data[PropertiesEnum.QBit.ToString()]);
 FileSystemWatcher watcher = new FileSystemWatcher();
 watcher.Path = data[PropertiesEnum.DownloadsPath.ToString()];
 
@@ -57,7 +57,8 @@ static void OnChanged(object source, FileSystemEventArgs e)
         else if (e.Name.ToLower() == "checkprocess.jpg")
         {
             File.Delete(@$"{data[PropertiesEnum.DownloadsPath.ToString()]}\CheckProcess.jpg");
-            CheckFileMover("FileMover", data[PropertiesEnum.FileMover.ToString()]);
+            CheckProcessIsRunning("FileMover", data[PropertiesEnum.FileMover.ToString()]);
+            CheckProcessIsRunning("qbittorrent", data[PropertiesEnum.QBit.ToString()]);
         }
     }
     catch (Exception ex)
@@ -66,7 +67,7 @@ static void OnChanged(object source, FileSystemEventArgs e)
     }
 }
 
-static void CheckFileMover(string process, string location)
+static void CheckProcessIsRunning(string process, string location)
 {
     Email email = new Email();
     if (ProcessRunning(process))
@@ -97,6 +98,7 @@ static bool ProcessRunning(string process)
         if (theprocess.ProcessName == process)
         {
             return true;
+            Console.WriteLine(theprocess.ProcessName);
         }
     }
     return false;
