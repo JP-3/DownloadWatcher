@@ -6,6 +6,7 @@
         RestartTV,
         TVEpisodeChecker,
         FileMover,
-        TV
+        TV,
+        QBit
     }
 }
