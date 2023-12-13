@@ -11,17 +11,7 @@ CheckFileMover("FileMover", data[PropertiesEnum.FileMover.ToString()]);
 
 FileSystemWatcher watcher = new FileSystemWatcher();
 watcher.Path = data[PropertiesEnum.DownloadsPath.ToString()];
-
-// Watch for all changes specified in the NotifyFilters  
-//enumeration.  
-watcher.NotifyFilter = NotifyFilters.Attributes |
-NotifyFilters.CreationTime |
-NotifyFilters.DirectoryName |
-NotifyFilters.FileName |
-NotifyFilters.LastAccess |
-NotifyFilters.LastWrite |
-NotifyFilters.Security |
-NotifyFilters.Size;
+watcher.NotifyFilter = NotifyFilters.FileName; 
 watcher.Filter = "*.jpg";
 
 // Add event handlers.  
@@ -43,21 +33,22 @@ static void OnChanged(object source, FileSystemEventArgs e)
 
         if (e.Name.ToLower() == "restarttv.jpg")
         {
-            email.SendEmail($"Starting {e.Name}");
             StartProcess(data[PropertiesEnum.RestartTV.ToString()], true);
-            email.SendEmail($"Finished {e.Name}");
         }
         else if (e.Name.ToLower() == "scanfiles.jpg")
         {
             File.Delete(@$"{data[PropertiesEnum.DownloadsPath.ToString()]}\ScanFiles.jpg");
-            email.SendEmail($"Starting {e.Name}");
             StartProcess(data[PropertiesEnum.TVEpisodeChecker.ToString()], true);
-            email.SendEmail($"Finished {e.Name}");
         }
         else if (e.Name.ToLower() == "checkprocess.jpg")
         {
             File.Delete(@$"{data[PropertiesEnum.DownloadsPath.ToString()]}\CheckProcess.jpg");
             CheckFileMover("FileMover", data[PropertiesEnum.FileMover.ToString()]);
+        }
+        else if (e.Name.ToLower().Contains(".createtvshow"))
+        {
+            File.Delete(@$"{data[PropertiesEnum.DownloadsPath.ToString()]}\{e.Name}");
+            Directory.CreateDirectory(@$"{data[PropertiesEnum.TV.ToString()]}\{e.Name.Remove(e.Name.IndexOf('.'))}");
         }
     }
     catch (Exception ex)
