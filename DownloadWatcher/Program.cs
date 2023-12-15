@@ -54,7 +54,7 @@ static void OnChanged(object source, FileSystemEventArgs e)
         else if (e.Name.ToLower() == "screenshot.jpg")
         {
             string imageLocation = @"C:\git\ScreenShot.jpg";
-            StartProcess(@"c:\git\nircmdc.exe", $@"savescreenshot {imageLocation}", true);
+            StartProcess(data[PropertiesEnum.TV.ToString()], $@"savescreenshot {imageLocation}", true);
             Thread.Sleep(1000);
             email.SendEmail("Screenshot", string.Empty, imageLocation);
         }
