@@ -25,6 +25,7 @@ static void OnChanged(object source, FileSystemEventArgs e)
     Email email = new Email();
     try
     {
+        Thread.Sleep(2000);
         Dictionary<string, string> data = new Dictionary<string, string>();
         foreach (var row in File.ReadAllLines(@"C:\\git\key.txt"))
         {
@@ -38,7 +39,7 @@ static void OnChanged(object source, FileSystemEventArgs e)
         else if (e.Name.ToLower() == "scanfiles.jpg")
         {
             File.Delete(@$"{data[PropertiesEnum.DownloadsPath.ToString()]}\ScanFiles.jpg");
-            StartProcess(data[PropertiesEnum.TVEpisodeChecker.ToString()], string.Empty, true);
+            StartProcess(data[PropertiesEnum.TVEpisodeChecker.ToString()], string.Empty, false);
         }
         else if (e.Name.ToLower() == "checkprocess.jpg")
         {
@@ -54,10 +55,12 @@ static void OnChanged(object source, FileSystemEventArgs e)
         else if (e.Name.ToLower() == "screenshot.jpg")
         {
             string imageLocation = @"C:\git\ScreenShot.jpg";
-            StartProcess(data[PropertiesEnum.TV.ToString()], $@"savescreenshot {imageLocation}", true);
+            StartProcess(data[PropertiesEnum.NARK.ToString()], $@"savescreenshot {imageLocation}", true);
             Thread.Sleep(1000);
             email.SendEmail("Screenshot", string.Empty, imageLocation);
         }
+        File.Delete(@$"{data[PropertiesEnum.DownloadsPath.ToString()]}\{e.Name}");
+
     }
     catch (Exception ex)
     {
@@ -81,6 +84,10 @@ static void CheckProcessIsRunning(string process, string location)
         {
             email.SendEmail($"{process} Still Down Check on it");
         }
+    }
+    else
+    {
+        email.SendEmail($"{process} is running");
     }
 }
 

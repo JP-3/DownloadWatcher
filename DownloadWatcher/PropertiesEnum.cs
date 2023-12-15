@@ -7,6 +7,7 @@
         TVEpisodeChecker,
         FileMover,
         TV,
-        QBit
+        QBit,
+        NARK
     }
 }
