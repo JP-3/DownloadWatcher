@@ -11,7 +11,7 @@ CheckProcessIsRunning("FileMover", data[PropertiesEnum.FileMover.ToString()]);
 CheckProcessIsRunning("qbittorrent", data[PropertiesEnum.QBit.ToString()]);
 FileSystemWatcher watcher = new FileSystemWatcher();
 watcher.Path = data[PropertiesEnum.DownloadsPath.ToString()];
-watcher.NotifyFilter = NotifyFilters.FileName; 
+watcher.NotifyFilter = NotifyFilters.FileName;
 watcher.Filter = "*.jpg";
 
 // Add event handlers.  
@@ -33,12 +33,12 @@ static void OnChanged(object source, FileSystemEventArgs e)
 
         if (e.Name.ToLower() == "restarttv.jpg")
         {
-            StartProcess(data[PropertiesEnum.RestartTV.ToString()], true);
+            StartProcess(data[PropertiesEnum.RestartTV.ToString()], string.Empty, true);
         }
         else if (e.Name.ToLower() == "scanfiles.jpg")
         {
             File.Delete(@$"{data[PropertiesEnum.DownloadsPath.ToString()]}\ScanFiles.jpg");
-            StartProcess(data[PropertiesEnum.TVEpisodeChecker.ToString()], true);
+            StartProcess(data[PropertiesEnum.TVEpisodeChecker.ToString()], string.Empty, true);
         }
         else if (e.Name.ToLower() == "checkprocess.jpg")
         {
@@ -50,6 +50,13 @@ static void OnChanged(object source, FileSystemEventArgs e)
         {
             File.Delete(@$"{data[PropertiesEnum.DownloadsPath.ToString()]}\{e.Name}");
             Directory.CreateDirectory(@$"{data[PropertiesEnum.TV.ToString()]}\{e.Name.Remove(e.Name.IndexOf('.'))}");
+        }
+        else if (e.Name.ToLower() == "screenshot.jpg")
+        {
+            string imageLocation = @"C:\git\ScreenShot.jpg";
+            StartProcess(@"c:\git\nircmdc.exe", $@"savescreenshot {imageLocation}", true);
+            Thread.Sleep(1000);
+            email.SendEmail("Screenshot", string.Empty, imageLocation);
         }
     }
     catch (Exception ex)
@@ -64,7 +71,7 @@ static void CheckProcessIsRunning(string process, string location)
     if (!ProcessRunning(process))
     {
         email.SendEmail($"{process} Down Restarting");
-        StartProcess(location, false);
+        StartProcess(location, string.Empty, false);
         Thread.Sleep(1000);
         if (ProcessRunning(process))
         {
@@ -91,11 +98,12 @@ static bool ProcessRunning(string process)
     return false;
 }
 
-static void StartProcess(string processPath, bool wait)
+static void StartProcess(string processPath, string startInfo, bool wait)
 {
     var processStartInfo = new ProcessStartInfo(processPath);
     processStartInfo.CreateNoWindow = true;
     processStartInfo.UseShellExecute = false;
+    processStartInfo.Arguments = startInfo;
     using var process = new Process();
     process.StartInfo = processStartInfo;
     process.Start();
