@@ -55,12 +55,13 @@ static void OnChanged(object source, FileSystemEventArgs e)
         else if (e.Name.ToLower() == "screenshot.jpg")
         {
             string imageLocation = @"C:\git\ScreenShot.jpg";
-            StartProcess(data[PropertiesEnum.NARK.ToString()], $@"savescreenshot {imageLocation}", true);
+            StartProcess(data[PropertiesEnum.NARK.ToString()], $@"savescreenshot {imageLocation}", false);
             Thread.Sleep(1000);
             email.SendEmail("Screenshot", string.Empty, imageLocation);
+            File.Delete(imageLocation);
+
         }
         File.Delete(@$"{data[PropertiesEnum.DownloadsPath.ToString()]}\{e.Name}");
-
     }
     catch (Exception ex)
     {
