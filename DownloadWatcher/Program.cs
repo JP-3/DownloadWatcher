@@ -38,19 +38,12 @@ static void OnChanged(object source, FileSystemEventArgs e)
         }
         else if (e.Name.ToLower() == "scanfiles.jpg")
         {
-            File.Delete(@$"{data[PropertiesEnum.DownloadsPath.ToString()]}\ScanFiles.jpg");
             StartProcess(data[PropertiesEnum.TVEpisodeChecker.ToString()], string.Empty, false);
         }
         else if (e.Name.ToLower() == "checkprocess.jpg")
         {
-            File.Delete(@$"{data[PropertiesEnum.DownloadsPath.ToString()]}\CheckProcess.jpg");
             CheckProcessIsRunning("FileMover", data[PropertiesEnum.FileMover.ToString()]);
             CheckProcessIsRunning("qbittorrent", data[PropertiesEnum.QBit.ToString()]);
-        }
-        else if (e.Name.ToLower().Contains(".createtvshow"))
-        {
-            File.Delete(@$"{data[PropertiesEnum.DownloadsPath.ToString()]}\{e.Name}");
-            Directory.CreateDirectory(@$"{data[PropertiesEnum.TV.ToString()]}\{e.Name.Remove(e.Name.IndexOf('.'))}");
         }
         else if (e.Name.ToLower() == "screenshot.jpg")
         {
@@ -59,7 +52,6 @@ static void OnChanged(object source, FileSystemEventArgs e)
             Thread.Sleep(1000);
             email.SendEmail("Screenshot", string.Empty, imageLocation);
             File.Delete(imageLocation);
-
         }
         File.Delete(@$"{data[PropertiesEnum.DownloadsPath.ToString()]}\{e.Name}");
     }
@@ -100,7 +92,6 @@ static bool ProcessRunning(string process)
         if (theprocess.ProcessName == process)
         {
             return true;
-            Console.WriteLine(theprocess.ProcessName);
         }
     }
     return false;
@@ -109,15 +100,21 @@ static bool ProcessRunning(string process)
 static void StartProcess(string processPath, string startInfo, bool wait)
 {
     var processStartInfo = new ProcessStartInfo(processPath);
+
     processStartInfo.CreateNoWindow = true;
     processStartInfo.UseShellExecute = false;
     processStartInfo.Arguments = startInfo;
     using var process = new Process();
-    process.StartInfo = processStartInfo;
-    process.Start();
-
-    if (wait)
+    using (process)
     {
-        process.WaitForExit();
+
+
+        process.StartInfo = processStartInfo;
+        process.Start();
+
+        if (wait)
+        {
+            process.WaitForExit();
+        }
     }
 }
