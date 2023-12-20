@@ -27,13 +27,17 @@ static void OnChanged(object source, FileSystemEventArgs e)
     {
         Thread.Sleep(2000);
         Dictionary<string, string> data = new Dictionary<string, string>();
+   
         foreach (var row in File.ReadAllLines(@"C:\\git\key.txt"))
         {
             data.Add(row.Split('=')[0], string.Join("=", row.Split('=').Skip(1).ToArray()));
         }
 
+        File.Delete(@$"{data[PropertiesEnum.DownloadsPath.ToString()]}\{e.Name}");
+
         if (e.Name.ToLower() == "restarttv.jpg")
         {
+            File.Delete(@$"{data[PropertiesEnum.DownloadsPath.ToString()]}\{e.Name}");
             StartProcess(data[PropertiesEnum.RestartTV.ToString()], string.Empty, true);
         }
         else if (e.Name.ToLower() == "scanfiles.jpg")
@@ -53,7 +57,12 @@ static void OnChanged(object source, FileSystemEventArgs e)
             email.SendEmail("Screenshot", string.Empty, imageLocation);
             File.Delete(imageLocation);
         }
-        File.Delete(@$"{data[PropertiesEnum.DownloadsPath.ToString()]}\{e.Name}");
+        try
+        {
+            File.Delete(@$"{data[PropertiesEnum.DownloadsPath.ToString()]}\{e.Name}");
+        }
+        catch (Exception){}
+     
     }
     catch (Exception ex)
     {
